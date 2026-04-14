@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Invoice, UserRole, InvoiceStatus } from "@/types/invoice";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { UserRole } from "@/types/invoice";
+import type { Invoice, InvoiceStatus } from "@/types/invoice";
+import { useAuth } from "@/context/AuthContext";
 
 interface InvoiceContextType {
-  role: UserRole;
-  setRole: (role: UserRole) => void;
+  role: UserRole | null;
   invoices: Invoice[];
   selectedInvoice: Invoice | null;
   setSelectedInvoice: (invoice: Invoice | null) => void;
@@ -19,18 +20,32 @@ interface InvoiceContextType {
 
 const InvoiceContext = createContext<InvoiceContextType | null>(null);
 
-export function InvoiceProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<UserRole>(UserRole.MAKER);
+export function InvoiceProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const role = user?.role && Object.values(UserRole).includes(user.role as UserRole) ? (user.role as UserRole) : null;
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchInvoices = async () => {
+    if (!user) {
+      setInvoices([]);
+      setSelectedInvoice(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/invoices/role/${role}`);
+      const response = await fetch("/api/invoices", { credentials: "include" });
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to fetch invoices");
+        setInvoices([]);
+        return;
+      }
+
       const data = await response.json();
       setInvoices(data.invoices || []);
       setSelectedInvoice(null);
@@ -45,8 +60,9 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetch("/api/invoices", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, maker: "MAKER" }),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -68,6 +84,7 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetch(`/api/invoices/${id}`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -90,26 +107,11 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
 
   const approveInvoice = async (id: string, comment?: string) => {
     try {
-      let newStatus = InvoiceStatus.DRAFT;
-      let nextRole = UserRole.CHECKER_2;
-
-      if (role === UserRole.CHECKER_1) {
-        newStatus = InvoiceStatus.DRAFT;
-        nextRole = UserRole.CHECKER_2;
-      } else if (role === UserRole.CHECKER_2) {
-        newStatus = InvoiceStatus.DRAFT;
-        nextRole = UserRole.SIGNER;
-      } else if (role === UserRole.SIGNER) {
-        newStatus = InvoiceStatus.READY_TO_PAY;
-        nextRole = UserRole.SIGNER;
-      }
-
       await fetch(`/api/invoices/${id}/status`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: newStatus,
-          role: nextRole,
           action: "APPROVED",
           comment,
         }),
@@ -123,14 +125,11 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
 
   const rejectInvoice = async (id: string, comment: string) => {
     try {
-      const rejectionStatus = role === UserRole.SIGNER ? InvoiceStatus.DRAFT : InvoiceStatus.INCOMPLETE;
-
       await fetch(`/api/invoices/${id}/status`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: rejectionStatus,
-          role: UserRole.MAKER,
           action: "REJECTED",
           comment,
         }),
@@ -146,10 +145,9 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
     try {
       await fetch(`/api/invoices/${id}/status`, {
         method: "PUT",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: InvoiceStatus.DRAFT,
-          role: UserRole.CHECKER_1,
           action: "SENT_BACK",
           comment,
         }),
@@ -162,14 +160,19 @@ export function InvoiceProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    if (!user) {
+      setInvoices([]);
+      setSelectedInvoice(null);
+      return;
+    }
+
     fetchInvoices();
-  }, [role]);
+  }, [user?.id, role]);
 
   return (
     <InvoiceContext.Provider
       value={{
         role,
-        setRole,
         invoices,
         selectedInvoice,
         setSelectedInvoice,

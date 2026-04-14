@@ -29,6 +29,9 @@ export function InvoiceList() {
         return "Invoices Pending Level 2 Validation";
       case UserRole.SIGNER:
         return "Invoices Awaiting Final Approval";
+
+      default:
+        return "Invoices";
     }
   };
 

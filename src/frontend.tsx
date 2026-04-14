@@ -8,11 +8,17 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { AuthProvider } from "@/context/AuthContext";
+import { InvoiceProvider } from "@/context/InvoiceContext";
 
 const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
-    <App />
+    <AuthProvider>
+      <InvoiceProvider>
+        <App />
+      </InvoiceProvider>
+    </AuthProvider>
   </StrictMode>
 );
 

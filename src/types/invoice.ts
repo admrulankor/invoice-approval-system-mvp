@@ -13,12 +13,21 @@ export enum UserRole {
   SIGNER = "SIGNER",
 }
 
+export type AccountRole = UserRole | "ADMIN";
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  role: AccountRole;
+}
+
 export interface InvoiceHistoryEntry {
   timestamp: number;
   role: UserRole;
   action: "CREATED" | "APPROVED" | "REJECTED" | "SENT_BACK";
   status: InvoiceStatus;
   comment?: string;
+  actorId?: string;
 }
 
 export interface Invoice {

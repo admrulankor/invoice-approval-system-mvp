@@ -1,9 +1,11 @@
-import { InvoiceProvider, useInvoice } from "@/context/InvoiceContext";
-import { RoleSelector } from "@/components/RoleSelector";
+import { useInvoice } from "@/context/InvoiceContext";
 import { Dashboard } from "@/components/Dashboard";
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { InvoiceList } from "@/components/InvoiceList";
 import { InvoiceDetail } from "@/components/InvoiceDetail";
+import { LoginForm } from "@/components/LoginForm";
+import { AccountManager } from "@/components/AccountManager";
+import { useAuth } from "@/context/AuthContext";
 import { UserRole } from "@/types/invoice";
 import { useEffect, useState } from "react";
 import "./index.css";
@@ -17,6 +19,7 @@ function getSystemTheme(): "light" | "dark" {
 }
 
 function InvoiceApp() {
+  const { user, loading, logout } = useAuth();
   const { role, selectedInvoice } = useInvoice();
   const [themeMode, setThemeMode] = useState<ThemeMode>("system");
 
@@ -53,6 +56,18 @@ function InvoiceApp() {
     return () => mediaQuery.removeListener(handleSystemThemeChange);
   }, [themeMode]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 text-gray-700 dark:text-gray-200">
+        Loading session...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginForm />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
@@ -78,9 +93,21 @@ function InvoiceApp() {
                   <option value="system">System</option>
                 </select>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Signed in as</p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">{user.username}</p>
+                </div>
+                <button
+                  onClick={logout}
+                  className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-800 text-white text-sm font-semibold"
+                >
+                  Logout
+                </button>
+              </div>
               <div className="flex items-center gap-2 text-right">
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">Current Role:</span>
-                <p className="text-lg font-semibold text-blue-600 whitespace-nowrap">{role.replace(/_/g, " ")}</p>
+                <p className="text-lg font-semibold text-blue-600 whitespace-nowrap">{user.role.replace(/_/g, " ")}</p>
               </div>
             </div>
           </div>
@@ -89,15 +116,20 @@ function InvoiceApp() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <RoleSelector />
-        <Dashboard />
+        {user.role === "ADMIN" ? (
+          <AccountManager />
+        ) : (
+          <>
+            <Dashboard />
 
-        {role === UserRole.MAKER && <InvoiceForm />}
+            {role === UserRole.MAKER && <InvoiceForm />}
 
-        <InvoiceList />
-        {!selectedInvoice || (selectedInvoice.status !== "INCOMPLETE" && selectedInvoice.status !== "MISMATCH") ? (
-          <InvoiceDetail />
-        ) : null}
+            <InvoiceList />
+            {!selectedInvoice || (selectedInvoice.status !== "INCOMPLETE" && selectedInvoice.status !== "MISMATCH") ? (
+              <InvoiceDetail />
+            ) : null}
+          </>
+        )}
       </main>
 
       {/* Footer */}
@@ -111,11 +143,7 @@ function InvoiceApp() {
 }
 
 export function App() {
-  return (
-    <InvoiceProvider>
-      <InvoiceApp />
-    </InvoiceProvider>
-  );
+  return <InvoiceApp />;
 }
 
 export default App;
