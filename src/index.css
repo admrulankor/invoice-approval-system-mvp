@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    @apply text-gray-900 bg-white font-sans;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --success: #16a34a;
+    --warning: #ea580c;
+    --danger: #dc2626;
+    --gray-light: #f3f4f6;
+  }
+
+  body {
+    @apply min-w-[320px] min-h-screen relative m-0 bg-gray-50;
+  }
+
+  h1 {
+    @apply text-3xl font-bold text-gray-900;
+  }
+
+  h2 {
+    @apply text-2xl font-bold text-gray-800;
+  }
+
+  h3 {
+    @apply text-lg font-semibold text-gray-700;
+  }
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed, #2563eb);
+  z-index: 50;
+  pointer-events: none;
+}
+
+* {
+  @apply transition-colors duration-150;
+}
+
+@media (prefers-reduced-motion) {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    @apply transition-none;
+  }
+}
