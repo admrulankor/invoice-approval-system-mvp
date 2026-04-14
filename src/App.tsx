@@ -57,15 +57,14 @@ function InvoiceApp() {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 dark:bg-slate-900 dark:border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Invoice Approval System</h1>
-              <p className="text-sm text-gray-500 mt-1 dark:text-gray-400">Multi-level workflow with strict approval controls</p>
             </div>
-            <div className="flex items-end gap-4">
-              <div className="text-right">
-                <label htmlFor="theme-mode" className="text-sm font-medium text-gray-600 block mb-1 dark:text-gray-300">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-6">
+              <div className="flex items-center gap-3">
+                <label htmlFor="theme-mode" className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
                   Theme Mode
                 </label>
                 <select
@@ -79,9 +78,9 @@ function InvoiceApp() {
                   <option value="system">System</option>
                 </select>
               </div>
-              <div className="text-right">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Current Role:</span>
-                <p className="text-lg font-semibold text-blue-600">{role.replace(/_/g, " ")}</p>
+              <div className="flex items-center gap-2 text-right">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">Current Role:</span>
+                <p className="text-lg font-semibold text-blue-600 whitespace-nowrap">{role.replace(/_/g, " ")}</p>
               </div>
             </div>
           </div>
@@ -103,7 +102,7 @@ function InvoiceApp() {
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12 dark:bg-slate-900 dark:border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div className="max-w-7xl mx-auto px-4 py-6 text-sm text-gray-500 dark:text-gray-400">
           <p>Invoice Approval System &copy; 2026 - All rights reserved</p>
         </div>
       </footer>
